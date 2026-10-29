@@ -23,6 +23,7 @@ const NEWLINE_MERGED_HEADERS = [
  */
 export class NetworkResponse {
   #cachedResponseBody;
+  #cachedResponseBodyIsBase64;
   #channel;
   #decodedBodySize;
   #encodedBodySize;
@@ -83,6 +84,7 @@ export class NetworkResponse {
     // "response is empty" in toJSON.
     this.#hasCachedResponseBody = false;
     this.#cachedResponseBody = "";
+    this.#cachedResponseBodyIsBase64 = false;
 
     if (memoryCacheKey && hasResponseCollector) {
       let text;
@@ -92,10 +94,16 @@ export class NetworkResponse {
         // API is not available yet, continue to handle cached resources as
         // before.
         if (typeof ChromeUtils.getCachedImageData === "function") {
-          text = ChromeUtils.getCachedImageData(
+          const data = ChromeUtils.getCachedImageData(
             memoryCacheKey,
             channel.URI.spec
           );
+          if (data !== undefined) {
+            // Image data is binary. Convert it to base64 so network.getData
+            // can return a network.BytesValue of type "base64".
+            text = btoa(data);
+            this.#cachedResponseBodyIsBase64 = true;
+          }
         }
       } else {
         text = ChromeUtils.getCachedJavaScriptSource(
@@ -126,6 +134,10 @@ export class NetworkResponse {
 
   get cachedResponseBody() {
     return this.#cachedResponseBody;
+  }
+
+  get cachedResponseBodyIsBase64() {
+    return this.#cachedResponseBodyIsBase64;
   }
 
   get decodedBodySize() {
@@ -310,6 +322,7 @@ export class NetworkResponse {
   toJSON() {
     return {
       cachedResponseBody: this.cachedResponseBody,
+      cachedResponseBodyIsBase64: this.cachedResponseBodyIsBase64,
       decodedBodySize: this.decodedBodySize,
       encodedBodySize: this.encodedBodySize,
       fromCache: this.fromCache,

@@ -30,6 +30,7 @@ export const SessionDataCategory = {
   DevicePixelRatioOverride: "device-pixel-ratio-override",
   DownloadBehaviorOverride: "download-behavior-override",
   Event: "event",
+  ForcedColorsModeThemeOverride: "forced-colors-mode-theme-override",
   GeolocationOverride: "geolocation-override",
   LocaleOverride: "locale-override",
   MediaFeaturesOverride: "media-features-override",

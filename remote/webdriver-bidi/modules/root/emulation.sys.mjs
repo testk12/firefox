@@ -157,6 +157,53 @@ class EmulationModule extends RootBiDiModule {
    */
 
   /**
+   * Set the forced colors mode theme override for the provided contexts,
+   * user contexts, or globally.
+   *
+   * @param {object=} options
+   * @param {Array<string>=} options.contexts
+   *     Optional list of browsing context ids.
+   * @param {("light"|"dark"|null)} options.theme
+   *     Forced colors mode theme. Null resets the override.
+   * @param {Array<string>=} options.userContexts
+   *     Optional list of user context ids.
+   *
+   * @throws {InvalidArgumentError}
+   *     Raised if the theme is invalid.
+   * @throws {NoSuchFrameError}
+   *     If a browsing context cannot be found.
+   * @throws {NoSuchUserContextError}
+   *     If a user context cannot be found.
+   */
+  async setForcedColorsModeThemeOverride(options = {}) {
+    const {
+      contexts: contextIds,
+      theme,
+      userContexts: userContextIds,
+    } = options;
+
+    lazy.assert.in(
+      theme,
+      ["light", "dark", null],
+      `Expected "theme" to be "light", "dark", or null, got ${theme}`
+    );
+
+    await this.messageHandler.handleCommand({
+      moduleName: "_configuration",
+      commandName: "_applyConfigurationParameters",
+      destination: { type: lazy.RootMessageHandler.type },
+      params: {
+        async: false,
+        category: lazy.SessionDataCategory.ForcedColorsModeThemeOverride,
+        contextIds,
+        resetValue: "none",
+        supportsGlobalConfiguration: true,
+        userContextIds,
+        value: theme === null ? "none" : theme,
+      },
+    });
+  }
+  /**
    * Set the geolocation override to the list of top-level navigables
    * or user contexts.
    *

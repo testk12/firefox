@@ -85,10 +85,25 @@ export class NetworkResponse {
     this.#cachedResponseBody = "";
 
     if (memoryCacheKey && hasResponseCollector) {
-      const text = ChromeUtils.getCachedJavaScriptSource(
-        memoryCacheKey,
-        channel.URI.spec
-      );
+      let text;
+      if (channel.contentType.startsWith("image/")) {
+        // Bug 2019195 adds this API for retrieving the original image bytes
+        // from the image cache. Keep this guarded so older builds, where that
+        // API is not available yet, continue to handle cached resources as
+        // before.
+        if (typeof ChromeUtils.getCachedImageData === "function") {
+          text = ChromeUtils.getCachedImageData(
+            memoryCacheKey,
+            channel.URI.spec
+          );
+        }
+      } else {
+        text = ChromeUtils.getCachedJavaScriptSource(
+          memoryCacheKey,
+          channel.URI.spec
+        );
+      }
+
       if (text !== undefined) {
         this.#cachedResponseBody = text;
         this.#hasCachedResponseBody = true;

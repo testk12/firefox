@@ -2478,7 +2478,7 @@ class NetworkModule extends RootBiDiModule {
       readAndProcessBodyFn = () =>
         new lazy.NetworkDataBytes({
           getBytesValue: () => response.cachedResponseBody,
-          isBase64: false,
+          isBase64: response.cachedResponseBodyIsBase64,
         });
       size = response.cachedResponseBody.length;
     } else {
